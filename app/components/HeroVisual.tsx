@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 
-const Sphere = dynamic(() => import("./Sphere"), { ssr: false });
+const Crystal = dynamic(() => import("./Crystal"), { ssr: false });
 
 function hasWebGL() {
   try {
@@ -46,10 +46,10 @@ export default function HeroVisual() {
       <div className="hero-poster" data-hidden={ready} />
       {supported && (
         <div className="hero-canvas" data-ready={ready}>
-          <Sphere active={active} still={still} onReady={() => setReady(true)} />
+          <Crystal active={active} still={still} onReady={() => setReady(true)} />
         </div>
       )}
-      <p className="hero-visual-hint mono">{still ? "fig. 01, static" : "fig. 01, hover to excite, click to cycle"}</p>
+      <p className="hero-visual-hint mono">fig. 01, crystal</p>
     </div>
   );
 }
