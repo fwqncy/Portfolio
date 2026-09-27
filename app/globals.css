@@ -327,9 +327,9 @@ section[id] {
 
 .hero-poster {
   position: absolute;
-  inset: 14% 24%;
-  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
-  background: linear-gradient(135deg, #f6b3dd 0%, #8a30ff 40%, #4d8dff 70%, #14111f 100%);
+  inset: 8% 26%;
+  clip-path: polygon(50% 0, 54% 38%, 62% 46%, 100% 50%, 62% 54%, 54% 62%, 50% 100%, 46% 62%, 38% 54%, 0 50%, 38% 46%, 46% 38%);
+  background: radial-gradient(circle at 50% 50%, #ffffff 0%, #b9c8ff 25%, #3a3f5c 60%, #0b0b10 100%);
   opacity: 0.85;
   transition: opacity 600ms ease;
 }
