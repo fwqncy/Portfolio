@@ -49,7 +49,7 @@ export default function HeroVisual() {
           <GlassStar active={active} still={still} onReady={() => setReady(true)} />
         </div>
       )}
-      <p className="hero-visual-hint mono">fig. 01, glass star</p>
+      <p className="hero-visual-hint mono"></p>
     </div>
   );
 }

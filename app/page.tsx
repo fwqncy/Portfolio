@@ -1,10 +1,18 @@
-import Image from "next/image";
 import Background from "./components/Background";
 import HeroVisual from "./components/HeroVisual";
 import CopyEmail from "./components/CopyEmail";
-import { experience, notes, profile, projects, threads } from "./content";
+import ProjectShowcase from "./components/ProjectShowcase";
+import Services from "./components/Services";
+import { profile, projects } from "./content";
 
-const WEEKS = 8;
+// Link icons (24x24); brand marks from Simple Icons.
+const ICONS: Record<string, string> = {
+  GitHub:
+    "M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12",
+  LinkedIn:
+    "M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 4.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z",
+  "Download CV": "M12 2a1 1 0 0 1 1 1v10.59l3.3-3.3a1 1 0 1 1 1.4 1.42l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 1 1 1.4-1.42l3.3 3.3V3a1 1 0 0 1 1-1zM4 19a1 1 0 0 1 1 1h14a1 1 0 1 1 2 0 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 1 1 0 0 1 1-1z",
+};
 
 export default function Page() {
   return (
@@ -15,14 +23,10 @@ export default function Page() {
       </a>
 
       <header className="nav wrap">
-        <a href="#top" className="nav-name" translate="no">
-          Sayef
-        </a>
         <nav aria-label="Sections">
           <ul className="nav-links">
-            <li><a href="#work">Work</a></li>
-            <li><a href="#process">Process</a></li>
-            <li><a href="#experience">Experience</a></li>
+            <li><a href="#work">Projects</a></li>
+            <li><a href="#services">Services</a></li>
             <li><a href="#contact">Contact</a></li>
           </ul>
         </nav>
@@ -32,21 +36,20 @@ export default function Page() {
         {/* 01 Hero: asymmetric split */}
         <section id="top" className="hero wrap" aria-labelledby="hero-title">
           <div className="hero-copy">
-            <p className="eyebrow mono">
-              <span className="dot" aria-hidden="true" />
-              {profile.status}
-            </p>
-            <h1 id="hero-title">
-              Multithreaded systems.
-              <br />
-              <span className="dim">Modular code.</span>
+            <h1 id="hero-title" className="hero-name">
+              <span className="hero-name-a" data-text="Sayef">Sayef</span>{" "}
+              <span className="hero-name-b" data-text="Khan">Khan</span>
             </h1>
-            <p className="hero-sub">
-              I design and build concurrent backends and composable frontends for teams that need software to keep
-              scaling after launch.
+            <p className="hero-role">{profile.role}</p>
+            <p className="hero-subheads mono">
+              <span>Specialising in multithreaded systems</span>
+              <svg className="hero-subheads-star" viewBox="-10 -10 20 20" aria-hidden="true">
+                <path d="M0,-10 Q1.2,-1.2 10,0 Q1.2,1.2 0,10 Q-1.2,1.2 -10,0 Q-1.2,-1.2 0,-10Z" />
+              </svg>
+              <span>Modular code</span>
             </p>
             <div className="hero-cta">
-              <a href="#work" className="btn btn-solid">See selected work</a>
+              <a href="#work" className="btn btn-solid">Projects</a>
               <a href="#contact" className="btn btn-ghost">Get in touch</a>
             </div>
           </div>
@@ -57,12 +60,13 @@ export default function Page() {
         <section className="statement wrap reveal" aria-labelledby="about-title">
           <h2 id="about-title" className="label mono">About</h2>
           <div className="statement-body">
+            <p className="hello">Hello,</p>
             <p className="lede">
-              I’m Sayef, a software engineer who works where throughput meets maintainability. I like the unglamorous
-              parts: queue semantics, module boundaries, the migration plan nobody wrote down.
+              I’m Sayef, an engineer who builds software that stays fast & modular as the team grows. I enjoy the behind-the-scenes details that keep everything running smoothly:
+              queue semantics, module boundaries, the migration plan nobody wrote down.
             </p>
             <p className="statement-aside">
-              Six years across backend platforms, product frontends and the seams between them. I leave behind code
+              Three years across backend platforms, product frontends and the seams between them. I leave behind code
               that the next person can change without asking me first.
             </p>
           </div>
@@ -71,21 +75,13 @@ export default function Page() {
         {/* 03 Work: zig-zag media rows */}
         <section id="work" className="work wrap" aria-labelledby="work-title">
           <div className="section-head">
-            <h2 id="work-title" className="label mono">Selected work</h2>
+            <h2 id="work-title" className="label mono">Past projects</h2>
             <p className="section-count mono">{String(projects.length).padStart(2, "0")} projects</p>
           </div>
           <ol className="work-list">
             {projects.map((p, i) => (
               <li key={p.id} className="work-row reveal" data-flip={i % 2 === 1}>
-                <figure className="work-media">
-                  <Image
-                    src={p.image}
-                    alt={`${p.title}: ${p.kind}`}
-                    width={1400}
-                    height={1000}
-                    sizes="(max-width: 860px) 100vw, 58vw"
-                  />
-                </figure>
+                <ProjectShowcase id={p.id} title={p.title} />
                 <div className="work-text">
                   <p className="mono meta">
                     <span>{String(i + 1).padStart(2, "0")}</span>
@@ -106,159 +102,21 @@ export default function Page() {
           </ol>
         </section>
 
-        {/* 04 Capabilities: bento modules */}
-        <section className="modules wrap" aria-labelledby="modules-title">
-          <div className="section-head">
-            <h2 id="modules-title" className="label mono">Modules</h2>
-            <p className="section-count mono">What I plug into a team</p>
-          </div>
-          <div className="bento reveal">
-            <article className="cell cell-a">
-              <p className="mono meta">mod/backend</p>
-              <h3>Concurrent backends</h3>
-              <p>
-                Schedulers, queues, streaming pipelines and the retry, idempotency and backpressure rules that make them
-                boring in production.
-              </p>
-              <p className="mono cell-foot">Go · Rust · Postgres · Kafka</p>
-            </article>
-            <article className="cell cell-b">
-              <p className="mono meta">mod/frontend</p>
-              <h3>Frontend architecture</h3>
-              <p>App shells split along team lines, with typed contracts between them.</p>
-            </article>
-            <article className="cell cell-c">
-              <p className="mono meta">mod/infra</p>
-              <h3>Infrastructure</h3>
-              <p>Terraform, CI that finishes in minutes, observability wired in on day one.</p>
-            </article>
-            <figure className="cell cell-img">
-              <Image
-                src="https://picsum.photos/seed/sayef-modules-desk/1200/900?grayscale"
-                alt="A quiet workspace with a laptop and notebook"
-                width={1200}
-                height={900}
-                sizes="(max-width: 860px) 100vw, 50vw"
-              />
-            </figure>
-            <article className="cell cell-d">
-              <p className="mono meta">mod/reliability</p>
-              <h3>Testing and reliability</h3>
-              <p>Property tests, load tests and runbooks that are read before the incident, not during.</p>
-            </article>
-          </div>
-        </section>
-
-        {/* 05 Process: parallel thread lanes */}
-        <section id="process" className="process wrap" aria-labelledby="process-title">
-          <div className="section-head">
-            <h2 id="process-title" className="label mono">Process</h2>
-            <p className="section-count mono">Five threads, one schedule</p>
-          </div>
-          <p className="process-intro">
-            Work doesn’t run in phases. Discovery keeps going while I build, and verification starts the week the first
-            module compiles.
-          </p>
-          <div className="lanes reveal" role="list">
-            <div className="lanes-axis mono" aria-hidden="true">
-              <span>week</span>
-              <div className="lanes-ticks">
-                {Array.from({ length: WEEKS }, (_, i) => (
-                  <span key={i}>w{i + 1}</span>
-                ))}
-              </div>
-            </div>
-            {threads.map((t) => (
-              <div className="lane" role="listitem" key={t.id}>
-                <div className="lane-label">
-                  <span className="mono meta">thread.{t.id}</span>
-                  <span className="lane-name">{t.name}</span>
-                  <span className="lane-note">{t.note}</span>
-                </div>
-                <div className="lane-track" aria-hidden="true">
-                  <div className="lane-bar" style={{ gridColumn: `${t.start} / ${t.end}` }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 06 Principle: full-bleed media */}
-        <section className="bleed" aria-labelledby="principle-title">
-          <Image
-            src="https://picsum.photos/seed/sayef-stairs-f/2400/1200?grayscale"
-            alt="Parallel rail lines under station lights in fog"
-            fill
-            sizes="100vw"
-            className="bleed-img"
-          />
-          <div className="bleed-copy wrap">
-            <h2 id="principle-title" className="label mono">Principle</h2>
-            <blockquote>
-              <p>“The best module is the one you can delete on a Friday without a meeting.”</p>
-            </blockquote>
-          </div>
-        </section>
-
-        {/* 07 Experience: indexed table */}
-        <section id="experience" className="experience wrap" aria-labelledby="experience-title">
-          <div className="section-head">
-            <h2 id="experience-title" className="label mono">Experience</h2>
-            <p className="section-count mono">Most recent first</p>
-          </div>
-          <table className="xp reveal">
-            <thead className="visually-hidden">
-              <tr>
-                <th scope="col">Years</th>
-                <th scope="col">Role</th>
-                <th scope="col">Organisation</th>
-                <th scope="col">Location</th>
-              </tr>
-            </thead>
-            <tbody>
-              {experience.map((x) => (
-                <tr key={x.years}>
-                  <td className="mono xp-years">{x.years}</td>
-                  <th scope="row" className="xp-role">{x.role}</th>
-                  <td className="xp-org">{x.org}</td>
-                  <td className="mono xp-place">{x.place}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-
-        {/* 08 Notes: horizontal rail */}
-        <section className="notes" aria-labelledby="notes-title">
+        {/* 04 Services: curved card slider */}
+        <section id="services" className="services" aria-labelledby="services-title">
           <div className="section-head wrap">
-            <h2 id="notes-title" className="label mono">Writing and open source</h2>
-            <p className="section-count mono">Scroll sideways</p>
+            <h2 id="services-title" className="label mono">Services</h2>
+            <p className="section-count mono">Drag or scroll sideways</p>
           </div>
-          <ul className="rail" tabIndex={0} aria-label="Writing and open source, scrollable">
-            {notes.map((n) => (
-              <li key={n.title} className="rail-item">
-                <Image src={n.image} alt="" width={900} height={1100} sizes="(max-width: 860px) 72vw, 26vw" />
-                <span className="mono meta">
-                  <span>{n.kind}</span>
-                  <span>{n.read}</span>
-                </span>
-                {n.href ? (
-                  <a href={n.href} className="rail-title rail-link">
-                    {n.title}
-                  </a>
-                ) : (
-                  <span className="rail-title">{n.title}</span>
-                )}
-              </li>
-            ))}
-          </ul>
+          <p className="services-title wrap">What I bring to a team</p>
+          <Services />
         </section>
 
         {/* 09 Contact: oversized type */}
         <section id="contact" className="contact wrap" aria-labelledby="contact-title">
           <h2 id="contact-title" className="label mono">Contact</h2>
           <p className="contact-big">
-            Have a system that needs to <span className="dim">scale, split or settle down?</span>
+            Got a project in mind? <span className="dim">Let’s talk it through.</span>
           </p>
           <div className="contact-row">
             <a className="contact-mail" href={`mailto:${profile.email}`}>
@@ -266,10 +124,23 @@ export default function Page() {
             </a>
             <CopyEmail email={profile.email} />
           </div>
+          <p className="eyebrow contact-status mono">
+            <span className="dot" aria-hidden="true" />
+            {profile.status}
+          </p>
           <ul className="contact-links mono">
-            {profile.links.filter((l) => l.href !== "#").map((l) => (
+            {profile.links.map((l) => (
               <li key={l.label}>
-                <a href={l.href} className="link">
+                <a
+                  href={l.href}
+                  className={l.label === "Download CV" ? "btn-ghost contact-outline" : "link"}
+                  download={l.href.endsWith(".pdf") || undefined}
+                >
+                  {ICONS[l.label] && (
+                    <svg className="contact-icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d={ICONS[l.label]} />
+                    </svg>
+                  )}
                   {l.label}
                 </a>
               </li>
