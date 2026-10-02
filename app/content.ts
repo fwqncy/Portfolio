@@ -3,13 +3,13 @@
 export const profile = {
   name: "Sayef Khan",
   role: "Software Engineer",
-  email: "sayefk21@gmail.com",
+  email: "sayxfkhan@gmail.com",
   status: "Open to full-time roles and select contracts",
   links: [
     { label: "GitHub", href: "https://github.com/fwqncy" },
     { label: "LinkedIn", href: "https://www.linkedin.com/in/sayxfk/" },
-    // Placeholder: put your CV in /public (for example public/cv.pdf) and set href to "/cv.pdf".
-    { label: "Download CV", href: "#" },
+    // Served from public/; replace that file to update the CV.
+    { label: "Download CV", href: "/Sayef_Khan_CV_2026.pdf" },
   ],
 };
 
