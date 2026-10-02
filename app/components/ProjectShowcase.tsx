@@ -2,20 +2,22 @@ import type { ReactNode } from "react";
 
 // Split media for a work row: source on the left, the shipped product on the right.
 
-type Lang = "go" | "ts" | "rust";
+type Lang = "go" | "ts" | "rust" | "python";
 
 const KEYWORDS: Record<Lang, string[]> = {
   go: ["func", "for", "if", "return", "continue", "nil", "var", "range", "select", "case", "default"],
   ts: ["export", "const", "return", "import", "from", "async", "await"],
   rust: ["impl", "pub", "fn", "for", "in", "let", "mut", "self", "Self", "if", "return"],
+  python: ["def", "async", "await", "return", "if", "not", "for", "in", "with", "as", "yield", "None"],
 };
 
 const TOKEN = /(\/\/.*$)|("(?:[^"\\]|\\.)*")|(\b\d[\d_.]*\b)|(\b[A-Za-z_]\w*\b)/gm;
+const TOKEN_PY = /(#.*$)|("(?:[^"\\]|\\.)*")|(\b\d[\d_.]*\b)|(\b[A-Za-z_]\w*\b)/gm;
 
 function highlight(line: string, lang: Lang): ReactNode[] {
   const out: ReactNode[] = [];
   let last = 0;
-  for (const m of line.matchAll(TOKEN)) {
+  for (const m of line.matchAll(lang === "python" ? TOKEN_PY : TOKEN)) {
     const i = m.index ?? 0;
     if (i > last) out.push(line.slice(last, i));
     const [text, comment, str, num, word] = m;
@@ -257,7 +259,74 @@ function FieldnoteApp() {
   );
 }
 
+const BEACON_SRC = `
+# beacon/api.py: grounded answers, streamed with sources
+@app.post("/ask")
+async def ask(q: Question, user: User = Depends(auth)):
+    hits = await search(q.text, team=user.team, k=6)
+    if not hits:
+        return {"answer": None, "reason": "no matching docs"}
+
+    prompt = build_prompt(q.text, hits)
+
+    async def stream():
+        async with client.messages.stream(
+            model=MODEL,
+            max_tokens=800,
+            system=SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": prompt}],
+        ) as s:
+            async for text in s.text_stream:
+                yield text
+        yield cite(hits)
+
+    return StreamingResponse(stream(), media_type="text/plain")
+
+
+async def search(text: str, team: str, k: int) -> list[Doc]:
+    vec = await embed(text)
+    return await db.fetch(
+        "SELECT * FROM docs WHERE team = $1 "
+        "ORDER BY embedding <=> $2 LIMIT $3",
+        team, vec, k,
+    )`;
+
+function BeaconApp() {
+  return (
+    <div className="show-app app-beacon">
+      <div className="app-bar">
+        <span className="app-title">beacon</span>
+        <span className="app-pill">
+          <i className="app-live" /> grounded
+        </span>
+      </div>
+      <div className="app-chat">
+        <p className="app-msg app-msg-user">How do I order a new laptop for a starter?</p>
+        <div className="app-msg app-msg-bot">
+          <p>
+            Raise a hardware request in the IT portal at least 10 working days before the start date
+            <sup className="app-cite">1</sup>. Managers approve it, then Procurement ships to the office or home
+            address on file<sup className="app-cite">2</sup>.
+          </p>
+          <ul className="app-sources">
+            <li>
+              <span className="app-cite">1</span> IT Handbook · p.12
+            </li>
+            <li>
+              <span className="app-cite">2</span> Procurement policy · §3.2
+            </li>
+          </ul>
+        </div>
+      </div>
+      <p className="app-input">
+        Ask anything about how we work…<span className="app-send" aria-hidden="true">↑</span>
+      </p>
+    </div>
+  );
+}
+
 const SHOWCASE: Record<string, { file: string; lang: Lang; src: string; app: () => ReactNode }> = {
+  beacon: { file: "beacon/api.py", lang: "python", src: BEACON_SRC, app: BeaconApp },
   relay: { file: "relay/worker.go", lang: "go", src: RELAY_SRC, app: RelayApp },
   ledgerline: { file: "payouts/router.ts", lang: "ts", src: LEDGERLINE_SRC, app: LedgerlineApp },
   fieldnote: { file: "sync/merge.rs", lang: "rust", src: FIELDNOTE_SRC, app: FieldnoteApp },

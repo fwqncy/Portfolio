@@ -25,14 +25,14 @@ export type Project = {
 
 export const projects: Project[] = [
   {
-    id: "relay",
-    title: "Relay",
-    kind: "Concurrent job runtime",
-    year: "2025",
+    id: "beacon",
+    title: "Beacon",
+    kind: "AI knowledge assistant",
+    year: "2023",
     summary:
-      "A work-stealing scheduler for a logistics platform, replacing a single-queue worker pool that stalled under burst traffic.",
-    outcome: "p95 queue latency went from 1.8 s to 240 ms at the same hardware cost.",
-    stack: ["Go", "Postgres", "Redis Streams"],
+      "An internal assistant that answers staff questions from 40,000 company documents and shows the exact page each answer came from.",
+    outcome: "Internal “how do I” support tickets fell by 38% in its first quarter.",
+    stack: ["Python", "FastAPI", "pgvector", "Claude API"],
   },
   {
     id: "ledgerline",
@@ -45,10 +45,20 @@ export const projects: Project[] = [
     stack: ["Next.js", "TypeScript", "tRPC"],
   },
   {
+    id: "relay",
+    title: "Relay",
+    kind: "Concurrent job runtime",
+    year: "2025",
+    summary:
+      "A work-stealing scheduler for a logistics platform, replacing a single-queue worker pool that stalled under burst traffic.",
+    outcome: "p95 queue latency went from 1.8 s to 240 ms at the same hardware cost.",
+    stack: ["Go", "Postgres", "Redis Streams"],
+  },
+  {
     id: "fieldnote",
     title: "Fieldnote",
     kind: "Offline-first sync engine",
-    year: "2023",
+    year: "2026",
     summary:
       "CRDT-based note sync for field researchers working without signal for days at a time, with conflict-free merges on reconnect.",
     outcome: "Zero data-loss reports across 14 months in production.",

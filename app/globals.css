@@ -950,6 +950,83 @@ section[id] {
   line-height: 1.35;
 }
 
+/* Beacon chat */
+.app-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.app-msg {
+  max-width: 92%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  line-height: 1.45;
+}
+
+.app-msg-user {
+  align-self: flex-end;
+  background: rgba(185, 169, 247, 0.16);
+  border-bottom-right-radius: 3px;
+}
+
+.app-msg-bot {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom-left-radius: 3px;
+}
+
+.app-cite {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.4em;
+  height: 1.4em;
+  margin-left: 2px;
+  border-radius: 4px;
+  background: rgba(233, 196, 156, 0.18);
+  color: #e9c49c;
+  font-size: 0.75em;
+  line-height: 1;
+  vertical-align: 0.3em;
+}
+
+.app-sources {
+  display: grid;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  font-size: 0.9em;
+  color: var(--muted);
+}
+
+.app-sources .app-cite {
+  margin: 0 6px 0 0;
+  vertical-align: 0;
+}
+
+.app-input {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding: 7px 7px 7px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--muted);
+}
+
+.app-send {
+  display: grid;
+  place-items: center;
+  width: 1.9em;
+  height: 1.9em;
+  border-radius: 50%;
+  background: var(--fg);
+  color: #111;
+}
+
 /* Narrow screens: stack the halves, divider turns horizontal. */
 @media (max-width: 600px) {
   .show {
