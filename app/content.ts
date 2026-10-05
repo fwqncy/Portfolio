@@ -45,6 +45,16 @@ export const projects: Project[] = [
     stack: ["Next.js", "TypeScript", "tRPC"],
   },
   {
+    id: "rostra",
+    title: "Rostra",
+    kind: "Staff rostering and shift-swap app",
+    year: "2024",
+    summary:
+      "A rostering tool for multi-site restaurants that lets staff swap shifts from their phone, with managers approving in one tap and labour cost shown live.",
+    outcome: "Weekly rostering time per store dropped from 3 hours to 40 minutes.",
+    stack: ["C#", "ASP.NET Core", "Entity Framework", "SQL Server", "Azure"],
+  },
+  {
     id: "relay",
     title: "Relay",
     kind: "Concurrent job runtime",
@@ -63,5 +73,15 @@ export const projects: Project[] = [
       "CRDT-based note sync for field researchers working without signal for days at a time, with conflict-free merges on reconnect.",
     outcome: "Zero data-loss reports across 14 months in production.",
     stack: ["Rust", "SQLite", "React Native"],
+  },
+  {
+    id: "pantry",
+    title: "Pantry",
+    kind: "Stock and supplier ordering REST API",
+    year: "2026",
+    summary:
+      "A Spring Boot REST API that tracks stock against par levels across stores and raises supplier orders automatically, backed by PostgreSQL and a full integration test suite.",
+    outcome: "Out-of-stock incidents fell by 60% across four pilot stores.",
+    stack: ["Java", "Spring Boot", "PostgreSQL", "JPA", "JUnit", "Testcontainers"],
   },
 ];

@@ -90,7 +90,10 @@ export default function Page() {
                   <h3>{p.title}</h3>
                   <p className="work-kind">{p.kind}</p>
                   <p>{p.summary}</p>
-                  <p className="work-outcome">{p.outcome}</p>
+                  <p className="work-outcome">
+                    <span className="work-badge mono">Potential</span>
+                    {p.outcome}
+                  </p>
                   <ul className="tags mono" aria-label="Stack">
                     {p.stack.map((s) => (
                       <li key={s}>{s}</li>

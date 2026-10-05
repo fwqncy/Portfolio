@@ -1027,6 +1027,85 @@ section[id] {
   color: #111;
 }
 
+/* Rostra roster */
+.app-roster {
+  display: grid;
+  grid-template-columns: 4.2em repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  text-align: center;
+}
+
+.app-roster-row {
+  display: contents;
+}
+
+.app-roster-name {
+  text-align: left;
+  color: var(--muted);
+  align-self: center;
+}
+
+.app-shift {
+  padding: 5px 0;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.85em;
+}
+
+.app-shift[data-s="1"] {
+  background: rgba(185, 169, 247, 0.18);
+}
+
+.app-shift[data-s="2"] {
+  background: rgba(233, 196, 156, 0.18);
+  color: #e9c49c;
+  outline: 1px dashed rgba(233, 196, 156, 0.6);
+}
+
+.app-toast-warn {
+  border-color: rgba(233, 196, 156, 0.4);
+  background: rgba(233, 196, 156, 0.08);
+  color: #f1d9bd;
+}
+
+/* Pantry API */
+.app-term {
+  display: grid;
+  gap: 3px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #0a0a0b;
+  font-size: 0.9em;
+}
+
+.app-term pre {
+  margin: 0;
+  color: #d6d3cc;
+  white-space: pre;
+  overflow: hidden;
+}
+
+.app-method {
+  margin-right: 6px;
+  padding: 0 5px;
+  border-radius: 3px;
+  background: rgba(111, 220, 155, 0.15);
+  color: #6fdc9b;
+}
+
+.app-status-line {
+  color: var(--muted);
+}
+
+.app-tests {
+  margin-top: auto;
+}
+
+.app-pass {
+  color: #6fdc9b;
+}
+
 /* Narrow screens: stack the halves, divider turns horizontal. */
 @media (max-width: 600px) {
   .show {
@@ -1071,6 +1150,20 @@ section[id] {
 .work-row[data-flip="true"] .work-text {
   grid-column: 1 / 5;
   grid-row: 1;
+}
+
+/* Marks concept projects, as opposed to shipped work. */
+.work-badge {
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: 0.15em;
+  padding: 2px 9px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: var(--fg);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 10px;
 }
 
 .work-text h3 {

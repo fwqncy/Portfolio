@@ -2,13 +2,15 @@ import type { ReactNode } from "react";
 
 // Split media for a work row: source on the left, the shipped product on the right.
 
-type Lang = "go" | "ts" | "rust" | "python";
+type Lang = "go" | "ts" | "rust" | "python" | "csharp" | "java";
 
 const KEYWORDS: Record<Lang, string[]> = {
   go: ["func", "for", "if", "return", "continue", "nil", "var", "range", "select", "case", "default"],
   ts: ["export", "const", "return", "import", "from", "async", "await"],
   rust: ["impl", "pub", "fn", "for", "in", "let", "mut", "self", "Self", "if", "return"],
   python: ["def", "async", "await", "return", "if", "not", "for", "in", "with", "as", "yield", "None"],
+  csharp: ["public", "private", "async", "await", "return", "if", "var", "new", "null", "class", "record", "this", "throw"],
+  java: ["public", "private", "final", "class", "return", "new", "void", "var", "throws", "import", "if", "this"],
 };
 
 const TOKEN = /(\/\/.*$)|("(?:[^"\\]|\\.)*")|(\b\d[\d_.]*\b)|(\b[A-Za-z_]\w*\b)/gm;
@@ -325,10 +327,149 @@ function BeaconApp() {
   );
 }
 
+const ROSTRA_SRC = `
+// Rostra.Api/Shifts/SwapEndpoints.cs
+public static class SwapEndpoints
+{
+    public static void MapSwaps(this WebApplication app)
+    {
+        app.MapPost("/shifts/{id:int}/swap", RequestSwap)
+           .RequireAuthorization("Staff");
+    }
+
+    static async Task<IResult> RequestSwap(
+        int id, SwapRequest req, RostraDb db, INotifier notify)
+    {
+        var shift = await db.Shifts
+            .Include(s => s.Staff)
+            .FirstOrDefaultAsync(s => s.Id == id);
+        if (shift is null) return Results.NotFound();
+
+        var cover = await db.Staff.FindAsync(req.CoverId);
+        if (cover is null || !cover.CanWork(shift))
+            return Results.Conflict("Cover is not available");
+
+        shift.PendingCoverId = cover.Id;
+        await db.SaveChangesAsync();
+        await notify.ManagerAsync(shift, cover);
+        return Results.Accepted();
+    }
+}`;
+
+function RostraApp() {
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+  const staff = [
+    { n: "Aroha", s: [1, 1, 0, 1, 1] },
+    { n: "Jordan", s: [0, 1, 1, 1, 0] },
+    { n: "Priya", s: [1, 0, 2, 0, 1] },
+    { n: "Liam", s: [1, 1, 1, 0, 1] },
+    { n: "Mei", s: [0, 1, 1, 1, 1] },
+  ];
+  return (
+    <div className="show-app app-rostra">
+      <div className="app-bar">
+        <span className="app-title">rostra</span>
+        <span className="app-pill">Week 32 · Ipswich</span>
+      </div>
+      <div className="app-roster">
+        <span />
+        {days.map((d) => (
+          <span key={d} className="app-k">
+            {d}
+          </span>
+        ))}
+        {staff.map((p) => (
+          <div key={p.n} className="app-roster-row">
+            <span className="app-roster-name">{p.n}</span>
+            {p.s.map((v, i) => (
+              <span key={i} className="app-shift" data-s={v}>
+                {v === 1 ? "9–5" : v === 2 ? "swap?" : ""}
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
+      <p className="app-toast app-toast-warn">Priya asked Jordan to cover Wed 9–5 · Approve</p>
+    </div>
+  );
+}
+
+const PANTRY_SRC = `
+// pantry-api/src/main/java/dev/sayef/pantry/StockController.java
+@RestController
+@RequestMapping("/api/stock")
+class StockController {
+    private final StockService stock;
+
+    StockController(StockService stock) { this.stock = stock; }
+
+    @GetMapping("/low")
+    List<StockItem> lowStock(@RequestParam long storeId) {
+        return stock.belowPar(storeId);
+    }
+
+    @PostMapping("/orders")
+    @ResponseStatus(HttpStatus.CREATED)
+    PurchaseOrder reorder(@Valid @RequestBody ReorderRequest req) {
+        return stock.raiseOrder(req.storeId(), req.supplierId());
+    }
+}
+
+// src/test/java/dev/sayef/pantry/StockControllerIT.java
+@SpringBootTest(webEnvironment = RANDOM_PORT)
+@Testcontainers
+class StockControllerIT {
+    @Container static PostgreSQLContainer<?> db = new PostgreSQLContainer<>("postgres:16");
+    @Autowired TestRestTemplate http;
+
+    @Test
+    void reorderCreatesOrderForItemsBelowPar() {
+        var res = http.postForEntity("/api/stock/orders",
+            new ReorderRequest(4L, 12L), PurchaseOrder.class);
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(res.getBody().lines()).hasSize(3);
+    }
+}`;
+
+function PantryApp() {
+  return (
+    <div className="show-app app-pantry">
+      <div className="app-bar">
+        <span className="app-title">pantry-api</span>
+        <span className="app-pill">
+          <i className="app-live" /> v1.4.0
+        </span>
+      </div>
+      <div className="app-term mono">
+        <p>
+          <span className="app-method">GET</span> /api/stock/low?storeId=4
+        </p>
+        <p className="app-status-line">200 OK · 38 ms</p>
+        <pre>{`[
+  { "sku": "TORT-12", "onHand": 14, "par": 60 },
+  { "sku": "AVO-HASS", "onHand": 9, "par": 40 },
+  { "sku": "CHIP-1KG", "onHand": 3, "par": 12 }
+]`}</pre>
+      </div>
+      <div className="app-term mono app-tests">
+        <p>./mvnw verify</p>
+        <p className="app-pass">✓ StockServiceTest · 18 passed</p>
+        <p className="app-pass">✓ StockControllerIT · 9 passed</p>
+        <p className="app-pass">✓ OrderRepositoryTest · 15 passed</p>
+        <p>
+          <span className="app-pass">Tests: 42 passed</span> · coverage 91%
+        </p>
+      </div>
+    </div>
+  );
+}
+
 const SHOWCASE: Record<string, { file: string; lang: Lang; src: string; app: () => ReactNode }> = {
   beacon: { file: "beacon/api.py", lang: "python", src: BEACON_SRC, app: BeaconApp },
   relay: { file: "relay/worker.go", lang: "go", src: RELAY_SRC, app: RelayApp },
   ledgerline: { file: "payouts/router.ts", lang: "ts", src: LEDGERLINE_SRC, app: LedgerlineApp },
+  rostra: { file: "Shifts/SwapEndpoints.cs", lang: "csharp", src: ROSTRA_SRC, app: RostraApp },
+  pantry: { file: "pantry/StockController.java", lang: "java", src: PANTRY_SRC, app: PantryApp },
   fieldnote: { file: "sync/merge.rs", lang: "rust", src: FIELDNOTE_SRC, app: FieldnoteApp },
 };
 
