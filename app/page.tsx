@@ -66,7 +66,7 @@ export default function Page() {
               queue semantics, module boundaries, the migration plan nobody wrote down.
             </p>
             <p className="statement-aside">
-              Three years across backend platforms, product frontends and the seams between them. I leave behind code
+              Across backend platforms, product frontends and the seams between them. I leave behind code
               that the next person can change without asking me first.
             </p>
           </div>
