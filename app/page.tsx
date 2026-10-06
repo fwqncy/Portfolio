@@ -68,6 +68,8 @@ export default function Page() {
             <p className="statement-aside">
               Across backend platforms, product frontends and the seams between them. I leave behind code
               that the next person can change without asking me first.
+              A Computer Science graduate who spent six years managing restaurants
+              and now builds software for the problems he actually lived.
             </p>
           </div>
         </section>
@@ -90,10 +92,7 @@ export default function Page() {
                   <h3>{p.title}</h3>
                   <p className="work-kind">{p.kind}</p>
                   <p>{p.summary}</p>
-                  <p className="work-outcome">
-                    <span className="work-badge mono">Potential</span>
-                    {p.outcome}
-                  </p>
+                  <p className="work-outcome">{p.outcome}</p>
                   <ul className="tags mono" aria-label="Stack">
                     {p.stack.map((s) => (
                       <li key={s}>{s}</li>

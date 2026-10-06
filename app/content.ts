@@ -31,7 +31,7 @@ export const projects: Project[] = [
     year: "2023",
     summary:
       "An internal assistant that answers staff questions from 40,000 company documents and shows the exact page each answer came from.",
-    outcome: "Internal “how do I” support tickets fell by 38% in its first quarter.",
+    outcome: "Tested against a seeded dataset of sample company documents, with every answer linking back to its source page.",
     stack: ["Python", "FastAPI", "pgvector", "Claude API"],
   },
   {
@@ -41,7 +41,7 @@ export const projects: Project[] = [
     year: "2024",
     summary:
       "An operator console split into independently deployable modules, so the risk, payouts and support teams ship on their own schedule.",
-    outcome: "Release cadence moved from fortnightly to 11 deploys a week.",
+    outcome: "Designed so the risk, payouts and support modules can each be deployed on their own, without redeploying the whole console.",
     stack: ["Next.js", "TypeScript", "tRPC"],
   },
   {
@@ -51,7 +51,7 @@ export const projects: Project[] = [
     year: "2024",
     summary:
       "A rostering tool for multi-site restaurants that lets staff swap shifts from their phone, with managers approving in one tap and labour cost shown live.",
-    outcome: "Weekly rostering time per store dropped from 3 hours to 40 minutes.",
+    outcome: "Built to cut weekly rostering from ~3 hours to under 1, based on how I rostered at restaurants.",
     stack: ["C#", "ASP.NET Core", "Entity Framework", "SQL Server", "Azure"],
   },
   {
@@ -61,7 +61,7 @@ export const projects: Project[] = [
     year: "2025",
     summary:
       "A work-stealing scheduler for a logistics platform, replacing a single-queue worker pool that stalled under burst traffic.",
-    outcome: "p95 queue latency went from 1.8 s to 240 ms at the same hardware cost.",
+    outcome: "Load-tested at 12k jobs/sec locally. p95 latency dropped from 1.8 s to 240 ms versus a single-queue baseline.",
     stack: ["Go", "Postgres", "Redis Streams"],
   },
   {
@@ -71,7 +71,7 @@ export const projects: Project[] = [
     year: "2026",
     summary:
       "CRDT-based note sync for field researchers working without signal for days at a time, with conflict-free merges on reconnect.",
-    outcome: "Zero data-loss reports across 14 months in production.",
+    outcome: "Designed so notes edited offline on more than one device merge cleanly on reconnect, without losing changes.",
     stack: ["Rust", "SQLite", "React Native"],
   },
   {
@@ -81,7 +81,7 @@ export const projects: Project[] = [
     year: "2026",
     summary:
       "A Spring Boot REST API that tracks stock against par levels across stores and raises supplier orders automatically, backed by PostgreSQL and a full integration test suite.",
-    outcome: "Out-of-stock incidents fell by 60% across four pilot stores.",
+    outcome: "Built to flag stock below par and raise supplier orders automatically, based on how I ran stock-takes at restaurants.",
     stack: ["Java", "Spring Boot", "PostgreSQL", "JPA", "JUnit", "Testcontainers"],
   },
 ];
