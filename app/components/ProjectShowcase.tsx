@@ -146,9 +146,6 @@ function RelayApp() {
     <div className="show-app app-relay">
       <div className="app-bar">
         <span className="app-title">relay</span>
-        <span className="app-pill">
-          <i className="app-live" /> prod
-        </span>
       </div>
       <div className="app-stats">
         <div>
@@ -241,9 +238,6 @@ function FieldnoteApp() {
         <div className="app-notch" aria-hidden="true" />
         <div className="app-bar">
           <span className="app-title">Field notes</span>
-          <span className="app-pill">
-            <i className="app-live" /> synced
-          </span>
         </div>
         <ul className="app-notes">
           {notes.map((n) => (
@@ -298,9 +292,6 @@ function BeaconApp() {
     <div className="show-app app-beacon">
       <div className="app-bar">
         <span className="app-title">beacon</span>
-        <span className="app-pill">
-          <i className="app-live" /> grounded
-        </span>
       </div>
       <div className="app-chat">
         <p className="app-msg app-msg-user">How do I order a new laptop for a starter?</p>
@@ -436,9 +427,6 @@ function PantryApp() {
     <div className="show-app app-pantry">
       <div className="app-bar">
         <span className="app-title">pantry-api</span>
-        <span className="app-pill">
-          <i className="app-live" /> v1.4.0
-        </span>
       </div>
       <div className="app-term mono">
         <p>

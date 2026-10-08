@@ -680,14 +680,6 @@ section[id] {
   color: var(--muted);
 }
 
-.app-live {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #6fdc9b;
-  box-shadow: 0 0 6px #6fdc9b;
-}
-
 .app-k {
   display: block;
   color: var(--muted);
@@ -908,11 +900,6 @@ section[id] {
   border-radius: 999px;
   background: #000;
   transform: translateX(-50%);
-}
-
-.app-field .app-pill {
-  font-size: 0.85em;
-  padding: 1px 6px;
 }
 
 .app-notes {
