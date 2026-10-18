@@ -8,6 +8,7 @@ export const profile = {
   links: [
     { label: "GitHub", href: "https://github.com/fwqncy" },
     { label: "LinkedIn", href: "https://www.linkedin.com/in/sayxfk/" },
+    { label: "Roque", href: "https://roqueai.com" },
     // Served from public/; replace that file to update the CV.
     { label: "Download CV", href: "/Sayef-Khan-CV.pdf" },
   ],
