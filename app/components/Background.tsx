@@ -1,82 +1,107 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ShaderGradient, ShaderGradientCanvas } from "@shadergradient/react";
+import { useEffect, useRef } from "react";
 
-// ShaderGradient preset "04 Nighty night", values copied one-to-one from shadergradient.co/customize.
-const GRADIENT = {
-  type: "waterPlane",
-  shader: "defaults",
-  uTime: 8,
-  uSpeed: 0.3,
-  uStrength: 1.5,
-  uDensity: 1.5,
-  uFrequency: 0,
-  uAmplitude: 0,
-  positionX: 0,
-  positionY: 0,
-  positionZ: 0,
-  rotationX: 50,
-  rotationY: 0,
-  rotationZ: -60,
-  color1: "#606080",
-  color2: "#8d7dca",
-  color3: "#212121",
-  reflection: 0.1,
-  wireframe: false,
-  cAzimuthAngle: 180,
-  cPolarAngle: 80,
-  cDistance: 2.8,
-  cameraZoom: 9.1,
-  lightType: "3d",
-  envPreset: "city",
-  brightness: 1,
-  grain: "on",
-  range: "disabled",
-  rangeStart: 0,
-  rangeEnd: 40,
-} as const;
+// Deep-space backdrop: soft nebula clouds plus three depths of twinkling stars that drift with scroll.
+type Star = { x: number; y: number; r: number; depth: number; phase: number; speed: number; hue: number };
 
-function hasWebGL() {
-  try {
-    const c = document.createElement("canvas");
-    return !!(c.getContext("webgl2") || c.getContext("webgl"));
-  } catch {
-    return false;
-  }
-}
+const LAYERS = [
+  { count: 0.00018, r: [0.4, 0.9], depth: 0.05 },
+  { count: 0.00008, r: [0.8, 1.4], depth: 0.12 },
+  { count: 0.000025, r: [1.3, 2.1], depth: 0.25 },
+];
+const HUES = [220, 250, 275, 40]; // icy blue, periwinkle, violet, the odd warm star
 
-// Fixed behind the whole page. The CSS gradient on .bg is the no-WebGL fallback.
 export default function Background() {
-  const [supported, setSupported] = useState(false);
-  const [still, setStill] = useState(false);
+  const canvas = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    setSupported(hasWebGL());
+    const el = canvas.current;
+    const ctx = el?.getContext("2d");
+    if (!el || !ctx) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let stars: Star[] = [];
+    let w = 0;
+    let h = 0;
+    let frame = 0;
+    let last = 0;
 
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const onMotion = () => setStill(mq.matches);
-    onMotion();
-    mq.addEventListener("change", onMotion);
-    return () => mq.removeEventListener("change", onMotion);
+    const seed = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = window.innerWidth;
+      h = window.innerHeight;
+      el.width = w * dpr;
+      el.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      stars = [];
+      for (const L of LAYERS) {
+        const n = Math.round(w * h * L.count);
+        for (let i = 0; i < n; i++) {
+          stars.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            r: L.r[0] + Math.random() * (L.r[1] - L.r[0]),
+            depth: L.depth,
+            phase: Math.random() * Math.PI * 2,
+            speed: 0.4 + Math.random() * 1.4,
+            hue: HUES[(Math.random() * HUES.length) | 0],
+          });
+        }
+      }
+    };
+
+    const draw = (t: number) => {
+      const sy = window.scrollY;
+      ctx.clearRect(0, 0, w, h);
+      for (const s of stars) {
+        const y = (((s.y - sy * s.depth) % h) + h) % h;
+        const tw = reduce ? 0.8 : 0.55 + 0.45 * Math.sin(t * 0.001 * s.speed + s.phase);
+        ctx.globalAlpha = tw;
+        ctx.fillStyle = `hsl(${s.hue} 70% 88%)`;
+        ctx.beginPath();
+        ctx.arc(s.x, y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+        if (s.r > 1.5) {
+          // Bright stars get a faint cross glint.
+          ctx.globalAlpha = tw * 0.35;
+          ctx.fillRect(s.x - s.r * 4, y - 0.4, s.r * 8, 0.8);
+          ctx.fillRect(s.x - 0.4, y - s.r * 4, 0.8, s.r * 8);
+        }
+      }
+      ctx.globalAlpha = 1;
+    };
+
+    const loop = (t: number) => {
+      frame = requestAnimationFrame(loop);
+      if (document.hidden || t - last < 1000 / 30) return;
+      last = t;
+      draw(t);
+    };
+
+    seed();
+    const onResize = () => {
+      seed();
+      draw(performance.now());
+    };
+    window.addEventListener("resize", onResize);
+    const onScroll = () => draw(0);
+    if (reduce) {
+      draw(0);
+      window.addEventListener("scroll", onScroll, { passive: true });
+    } else {
+      frame = requestAnimationFrame(loop);
+    }
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("scroll", onScroll);
+    };
   }, []);
 
   return (
     <div className="bg" aria-hidden="true">
-      {supported && (
-        <div className="bg-canvas">
-          <ShaderGradientCanvas
-            style={{ position: "absolute", inset: 0 }}
-            pixelDensity={1}
-            fov={45}
-            pointerEvents="none"
-            lazyLoad={false}
-            envBasePath="/hdr/"
-          >
-            <ShaderGradient control="props" animate={still ? "off" : "on"} {...GRADIENT} />
-          </ShaderGradientCanvas>
-        </div>
-      )}
+      <div className="bg-nebula" />
+      <canvas ref={canvas} className="bg-canvas" />
     </div>
   );
 }

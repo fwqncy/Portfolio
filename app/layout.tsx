@@ -1,25 +1,39 @@
 import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
-import { Italiana } from "next/font/google";
+import { IBM_Plex_Mono, Instrument_Serif } from "next/font/google";
+import Background from "./components/Background";
+import CodeHeader from "./components/CodeHeader";
+import PageTransition from "./components/PageTransition";
+import SiteFooter from "./components/SiteFooter";
 import "./globals.css";
 
-const display = Italiana({ weight: "400", subsets: ["latin"], variable: "--font-display" });
+// Type after the Noctra reference: italic display serif for headings, uppercase mono for statements,
+// a plain sans for small body copy.
+const display = Instrument_Serif({ weight: "400", style: ["normal", "italic"], subsets: ["latin"], variable: "--font-display" });
+const mono = IBM_Plex_Mono({ weight: ["300", "400", "500"], subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  title: "Sayef, software engineer",
-  description: "Sayef builds concurrent backends and modular frontends that keep scaling after launch.",
+  title: "Sayef Khan, software engineer",
+  description:
+    "Sayef Khan, a computer science graduate who spent six years managing restaurants and now builds software for the problems he actually lived.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b0b0c",
+  themeColor: "#05050a",
   colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} ${display.variable}`}>
-      <body>{children}</body>
+    <html lang="en" className={`${GeistSans.variable} ${display.variable} ${mono.variable}`}>
+      <body>
+        <Background />
+        <PageTransition>
+          <CodeHeader />
+          {children}
+          <SiteFooter />
+        </PageTransition>
+      </body>
     </html>
   );
 }
