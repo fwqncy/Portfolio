@@ -211,20 +211,6 @@ button {
   text-shadow: 0 0 10px rgba(220, 214, 247, 0.6);
 }
 
-/* Page transition: shape overlay above everything. */
-.pt {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.pt[data-active] {
-  pointer-events: auto;
-}
-
 /* 01 Hero: name and star centred, the star behind. */
 .hero {
   position: relative;
@@ -557,107 +543,559 @@ button {
   }
 }
 
-/* 03 Projects: layered pinned panels with the lateral index alongside. */
-.ps {
+/* 03 Projects: a row of cards (drawn by lib/cardStage.ts) with the galaxy bar beneath. */
+.pcx {
   position: relative;
+  height: 100svh;
+  min-height: 620px;
   margin-top: calc(var(--space-gap) - clamp(140px, 22vh, 220px));
 }
 
-.ps-panel {
-  position: relative;
-  height: 100svh;
-  overflow: hidden;
-  background: var(--bg-2);
-  box-shadow: 0 -30px 60px rgba(0, 0, 0, 0.55);
-}
-
-/* The first panel fades in from the starfield at its top and the last fades out at its bottom, with the same
-   soft 30% ramp. (Data attributes, because pinning wraps each panel, which breaks :first/:last selectors.) */
-.ps-panel[data-edge="first"] {
-  -webkit-mask-image: linear-gradient(transparent, #000 30%);
-  mask-image: linear-gradient(transparent, #000 30%);
-}
-
-/* --fade is scrubbed from 0 to 1 in ProjectStack.tsx: solid while it slides over the panel beneath, then the
-   fade grows in as it scrolls away, so nothing beneath is ever revealed and then snapped away. */
-.ps-panel[data-edge="last"] {
-  --fade: 0;
-  -webkit-mask-image: linear-gradient(#000 calc(100% - var(--fade) * 30%), transparent);
-  mask-image: linear-gradient(#000 calc(100% - var(--fade) * 30%), transparent);
-}
-
-/* Three galaxy tints, repeating. */
-.ps-panel::before {
-  content: "";
+.pcx-stage {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(60% 50% at 80% 30%, rgba(91, 63, 180, 0.35), transparent 70%),
-    radial-gradient(50% 40% at 10% 90%, rgba(56, 92, 190, 0.22), transparent 70%),
-    #0b0b14;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.ps-panel[data-i="1"]::before {
-  background:
-    radial-gradient(60% 50% at 20% 25%, rgba(56, 92, 190, 0.32), transparent 70%),
-    radial-gradient(45% 40% at 90% 85%, rgba(180, 70, 160, 0.2), transparent 70%),
-    #090a14;
+.pcx[data-hover] .pcx-stage,
+.pcx[data-hover-side] .pcx-stage {
+  cursor: pointer;
 }
 
-.ps-panel[data-i="2"]::before {
-  background:
-    radial-gradient(55% 45% at 70% 80%, rgba(180, 70, 160, 0.24), transparent 70%),
-    radial-gradient(50% 45% at 15% 20%, rgba(91, 63, 180, 0.28), transparent 70%),
-    #0c0912;
+.pcx[data-dragging] .pcx-stage {
+  cursor: grabbing;
 }
 
-.ps-inner {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  align-items: center;
-  gap: clamp(24px, 4vw, 64px);
+.pcx-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
   height: 100%;
-  padding: 72px var(--gutter) 40px clamp(220px, 20vw, 300px);
+  opacity: 0;
+  transition: opacity 700ms ease;
 }
 
-.ps-text {
-  display: grid;
-  gap: 16px;
-  color: var(--muted);
+.pcx[data-built] .pcx-canvas {
+  opacity: 1;
 }
 
-.ps-meta {
+/* No WebGL: the card canvases themselves, placed with CSS 3D transforms. */
+.pcx-css > canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* Behind the middle card: a halo in its project's tint (brighter on hover, leaning toward the cursor) and a pool
+   of light on the floor beneath it. */
+.pcx-ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pcx-glow {
+  position: absolute;
+  left: 50%;
+  top: var(--cy, 45%);
+  width: calc(var(--cw, 400px) * 2);
+  height: calc(var(--ch, 560px) * 1.5);
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--tint) 38%, transparent), transparent);
+  opacity: 0.55;
+  transform: translate(-50%, -50%) translate(calc(var(--mx, 0) * 60px), calc(var(--my, 0) * 60px));
+  transition:
+    opacity 500ms ease,
+    transform 600ms var(--ease);
+}
+
+.pcx-glow::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: calc(50% + var(--ch, 560px) / 2 + 34px);
+  width: calc(var(--cw, 400px) * 1.3);
+  height: 46px;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--tint) 65%, #8fe3ff), transparent);
+  opacity: 0.5;
+  filter: blur(6px);
+  transform: translateX(-50%);
+}
+
+.pcx[data-hover] .pcx-glow {
+  opacity: 0.9;
+}
+
+.pcx[data-moving] .pcx-glow {
+  opacity: 0.15;
+}
+
+/* The recordings play here, tucked under the canvas that draws them onto the cards. */
+.pcx-videos {
+  position: absolute;
+  left: 50%;
+  top: var(--cy, 45%);
+  width: 16px;
+  height: 10px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.pcx-videos video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* The middle card's link, laid over it: what keyboards focus and screen readers read. */
+.pcx-hit {
+  position: absolute;
+  left: 50%;
+  top: var(--cy, 45%);
+  z-index: 2;
+  width: var(--cw, 400px);
+  height: var(--ch, 560px);
+  border-radius: calc(var(--cw, 400px) * 0.065);
+  transform: translate(-50%, -50%);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+.pcx-hit:focus-visible {
+  outline-offset: 10px;
+  border-radius: calc(var(--cw, 400px) * 0.065);
+}
+
+.pcx-nav {
+  position: absolute;
+  left: 50%;
+  bottom: max(28px, env(safe-area-inset-bottom));
+  z-index: 3;
   display: flex;
-  gap: 18px;
-  font-size: 12px;
-  letter-spacing: 0.1em;
+  align-items: flex-end;
+  gap: clamp(14px, 2.4vw, 28px);
+  width: min(720px, calc(100% - 2 * var(--gutter)));
+  transform: translateX(-50%);
 }
 
-.ps-title {
-  font-family: var(--font-display), serif;
-  font-style: italic;
-  font-weight: 400;
-  font-size: clamp(3rem, 6vw, 5.5rem);
-  line-height: 0.92;
-  text-transform: uppercase;
+.pcx-bar {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Lined up with the bar's track, which sits 16px above the bottom of its hit area. */
+.pcx-arrow {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: -6px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: rgba(5, 5, 10, 0.5);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    opacity 200ms ease;
+}
+
+.pcx-arrow svg,
+.cs-close svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pcx-arrow:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.pcx-arrow[aria-disabled] {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.pcx-arrow[aria-disabled]:hover {
+  background: rgba(5, 5, 10, 0.5);
   color: var(--fg);
 }
 
-.ps-kind {
+/* Galaxy bar (GalaxyBar.tsx draws its blooms, stardust and comet on the canvas). */
+/* The label sits clear of the tallest blooms. */
+.gb {
+  display: grid;
+  gap: 40px;
+}
+
+.gb-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.gb-label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--fg);
+}
+
+.gb-num {
+  margin-right: 4px;
+  color: var(--accent);
+}
+
+.gb-track {
+  position: relative;
+  border-radius: 8px;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.gb-track:focus-visible {
+  outline-offset: 6px;
+}
+
+.gb-canvas {
+  position: absolute;
+  pointer-events: none;
+}
+
+.gb[data-orientation="vertical"] {
+  justify-items: start;
+  gap: 18px;
+}
+
+.gb[data-orientation="vertical"] .gb-head {
+  display: contents;
+}
+
+.gb[data-orientation="vertical"] .gb-track {
+  order: 1;
+  height: min(50vh, 440px);
+  touch-action: pan-x;
+}
+
+.gb[data-orientation="vertical"] .gb-pct {
+  order: 2;
+}
+
+/* The card while it turns over (built in ProjectCarousel.tsx): its face in front, the case study's gradient and
+   shade behind, sized to line up with the panel it opens into. */
+.flip {
+  position: fixed;
+  z-index: 90;
+  pointer-events: none;
+}
+
+.flip-card {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.flip-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--r);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.flip-back {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.2) 55%, rgba(0, 0, 0, 0.05) 100%) no-repeat,
+    linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.2)) no-repeat,
+    radial-gradient(70% 60% at 30% 85%, #4a36c0 0%, transparent 70%) no-repeat,
+    radial-gradient(60% 50% at 75% 45%, #261c84 0%, transparent 70%) no-repeat,
+    #07061a;
+  box-shadow: inset 0 0 0 1px rgba(236, 230, 218, 0.12);
+  transform: rotateY(180deg);
+}
+
+/* Case study: the back of the card, opened out to nearly fill the screen. Keep the inset in step with INSET in
+   ProjectCarousel.tsx. The gutter is reserved so locking the page's scroll doesn't shift it sideways. */
+html {
+  scrollbar-gutter: stable;
+}
+
+html.is-locked {
+  overflow: hidden;
+}
+
+.cs {
+  position: fixed;
+  inset: 12px;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 24px;
+  background: #07061a;
+  color: var(--fg);
+}
+
+/* Server-rendered open at /projects/<id>, until it can be shown as a modal. */
+.cs[data-static] {
+  display: block;
+  z-index: 60;
+}
+
+.cs::backdrop {
+  background: transparent;
+}
+
+.cs:focus {
+  outline: none;
+}
+
+.cs[data-phase] .cs-scroll,
+.cs[data-phase] .cs-chrome {
+  opacity: 0;
+}
+
+/* "04 Nighty night" ShaderGradient (CaseGradient.tsx). This CSS gradient, in the colours it renders (deep violet
+   waves on near-black), shows while it loads and without WebGL, and is also on the back of the flipping card. */
+.ug {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(70% 60% at 30% 85%, #4a36c0 0%, transparent 70%),
+    radial-gradient(60% 50% at 75% 45%, #261c84 0%, transparent 70%),
+    #07061a;
+}
+
+.ug > * {
+  animation: ug-in 1.2s ease 0.2s both;
+}
+
+@keyframes ug-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Lightly darkens the gradient behind the text so copy stays readable. */
+.cs-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.2) 55%, rgba(0, 0, 0, 0.05) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.2));
+}
+
+.cs-scroll {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 72px var(--gutter) 120px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(236, 230, 218, 0.25) transparent;
+}
+
+/* The galaxy bar, stood on end down the left of the case study. */
+.cs-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: clamp(20px, 3vw, 40px);
+  z-index: 3;
+  align-content: center;
+  pointer-events: none;
+}
+
+.cs-bar .gb-track,
+.cs-bar .gb-head {
+  pointer-events: auto;
+}
+
+.cs-close {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  right: 16px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: rgba(5, 5, 10, 0.45);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
+}
+
+.cs-close:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.cs-case {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 22px;
+  max-width: 760px;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.cs-back {
+  padding: 10px 4px;
+  border: 0;
+  background: none;
   font-size: 12px;
   letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 200ms ease;
+}
+
+.cs-back:hover {
+  color: var(--fg);
+}
+
+.cs-title {
+  font-family: var(--font-display), serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(3.4rem, 9vw, 7rem);
+  line-height: 0.9;
+  text-transform: uppercase;
+  text-shadow: 0 0 26px rgba(179, 168, 230, 0.35);
+}
+
+.cs-sub {
+  margin-top: -8px;
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--accent);
 }
 
-.ps-summary {
-  max-width: 44ch;
+.cs-figure {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--bg-2);
 }
 
-.ps-open {
-  justify-self: start;
-  margin-top: 8px;
+.cs-figure img,
+.cs-figure video {
+  object-fit: cover;
+}
+
+.cs-figure video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Tint the placeholder photo towards deep space. */
+.cs-figure:not(:has(video))::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, rgba(141, 125, 202, 0.5), rgba(20, 22, 60, 0.75));
+  mix-blend-mode: multiply;
+}
+
+.cs-desc {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.cs-desc-text {
+  font-family: var(--font-mono), monospace;
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  line-height: 1.55;
+  text-transform: uppercase;
+}
+
+/* Centred, so the outcome's accent line sits above it instead of to the left. */
+.cs-case .work-outcome {
+  max-width: 56ch;
+  padding: 14px 0 0;
+  border-left: 0;
+  background: linear-gradient(var(--accent), var(--accent)) top center / 48px 1px no-repeat;
+}
+
+.cs-case .tags,
+.cs-case .meta {
+  justify-content: center;
+}
+
+.cs-section {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  width: 100%;
+  margin-top: clamp(28px, 5vw, 56px);
+}
+
+.cs-h3 {
+  font-family: var(--font-display), serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.9rem, 4.2vw, 3rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.cs-body {
+  max-width: 60ch;
+  font-size: clamp(1rem, 1.3vw, 1.08rem);
+  line-height: 1.7;
+  color: rgba(236, 230, 218, 0.82);
+  text-wrap: pretty;
+}
+
+.cs-repo {
+  justify-self: center;
+  margin-top: clamp(28px, 5vw, 48px);
   padding: 10px 16px;
   border: 1px solid var(--line-strong);
   border-radius: 999px;
@@ -670,264 +1108,12 @@ button {
     color 200ms ease;
 }
 
-.ps-open:hover {
+.cs-repo:hover {
   background: var(--fg);
   color: var(--bg);
 }
 
-.ps-media {
-  cursor: pointer;
-  transition: transform 500ms var(--ease);
-}
-
-.ps-media:hover {
-  transform: translateY(-6px);
-}
-
-.ps-media .show {
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-/* Preview whose product side is a screen recording: give the recording more of the width. */
-.show[data-video] {
-  grid-template-columns: minmax(0, 1.6fr) 1px minmax(0, 3.4fr);
-  aspect-ratio: 16 / 9;
-}
-
-.show-app-video {
-  justify-content: center;
-}
-
-.show-video {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #000;
-}
-
-/* Lateral index (Lateral Pin Indicator): names on the left with a glowing fill line. */
-.pi {
-  display: flex;
-  gap: 16px;
-}
-
-.pi-track {
-  position: relative;
-  width: 2px;
-  background: var(--line);
-}
-
-.pi-fill {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(var(--accent-hot), var(--accent));
-  box-shadow: 0 0 12px rgba(179, 168, 230, 0.8);
-}
-
-.pi-list {
-  display: grid;
-  gap: 4px;
-}
-
-.pi-item {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 6px 0;
-  border: 0;
-  background: none;
-  font-family: var(--font-display), serif;
-  font-style: italic;
-  font-size: clamp(1.15rem, 1.5vw, 1.5rem);
-  line-height: 1.1;
-  text-transform: uppercase;
-  text-align: left;
-  color: var(--muted);
-  cursor: pointer;
-  transition: color 250ms ease;
-}
-
-.pi-item:hover {
-  color: var(--fg);
-}
-
-.pi-item[aria-current] {
-  color: var(--accent-hot);
-  text-shadow: 0 0 14px rgba(179, 168, 230, 0.6);
-}
-
-.pi-num {
-  font-family: var(--font-mono), monospace;
-  font-style: normal;
-  font-size: 10px;
-  letter-spacing: 0.08em;
-}
-
-.ps-index {
-  position: fixed;
-  top: 50%;
-  left: var(--gutter);
-  z-index: 20;
-  transform: translateY(-50%);
-}
-
-/* Project page. */
-.pc {
-  position: relative;
-  min-height: 100svh;
-  padding: 72px var(--gutter) 160px;
-}
-
-/* Lightly darkens the gradient behind the text column so copy stays readable. */
-.pc::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 1; /* above the gradient (0), below the article (also 1, later in order) */
-  pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.2) 55%, rgba(0, 0, 0, 0.05) 100%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.2));
-}
-
-/* "04 Nighty night" ShaderGradient behind case studies; the CSS gradient shows while it loads. */
-.ug {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(70% 60% at 30% 85%, #8d7dca 0%, transparent 70%),
-    radial-gradient(60% 50% at 75% 45%, #606080 0%, transparent 70%),
-    #212121;
-}
-
-.pc-fire {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  margin: 0;
-  overflow: hidden;
-  font-family: var(--font-mono), monospace;
-  font-size: 10px;
-  line-height: 1.15;
-  white-space: pre;
-  user-select: none;
-  pointer-events: none;
-  color: transparent;
-  background: linear-gradient(to top, #ffe08a 0%, #ff8a1f 12%, #ff3d5a 30%, #d94bff 52%, #8d7dca 72%, rgba(141, 125, 202, 0) 92%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  opacity: 0.18;
-}
-
-.pc-index {
-  position: fixed;
-  top: 50%;
-  left: var(--gutter);
-  z-index: 2;
-  transform: translateY(-50%);
-}
-
-.pc-case {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  justify-items: center;
-  text-align: center;
-  gap: 22px;
-  max-width: 760px;
-  margin-inline: auto;
-}
-
-.pc-back {
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  transition: color 200ms ease;
-}
-
-.pc-back:hover {
-  color: var(--fg);
-}
-
-.pc-title {
-  font-family: var(--font-display), serif;
-  font-style: italic;
-  font-weight: 400;
-  font-size: clamp(3.4rem, 9vw, 7rem);
-  line-height: 0.9;
-  text-transform: uppercase;
-  text-shadow: 0 0 26px rgba(179, 168, 230, 0.35);
-}
-
-.pc-sub {
-  margin-top: -8px;
-  font-family: var(--font-mono), monospace;
-  font-size: 13px;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
-.pc-figure {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  border-radius: 12px;
-  background: var(--bg-2);
-}
-
-.pc-figure img {
-  object-fit: cover;
-}
-
-/* Tint the placeholder photo towards deep space. */
-.pc-figure::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(160deg, rgba(141, 125, 202, 0.5), rgba(20, 22, 60, 0.75));
-  mix-blend-mode: multiply;
-}
-
-.pc-desc {
-  display: grid;
-  justify-items: center;
-  gap: 10px;
-}
-
-/* Centred, so the outcome's accent line sits above it instead of to the left. */
-.pc-case .work-outcome {
-  max-width: 56ch;
-  padding: 14px 0 0;
-  border-left: 0;
-  background: linear-gradient(var(--accent), var(--accent)) top center / 48px 1px no-repeat;
-}
-
-.pc-case .tags,
-.pc-case .meta {
-  justify-content: center;
-}
-
-.pc .pc-case {
-  padding-top: 0;
-}
-
-.pc-desc-text {
-  font-family: var(--font-mono), monospace;
-  font-size: clamp(1rem, 1.6vw, 1.2rem);
-  line-height: 1.55;
-  text-transform: uppercase;
-}
-
-.pc-pager {
+.cs-pager {
   display: flex;
   justify-content: center;
   width: 100%;
@@ -939,74 +1125,43 @@ button {
   text-transform: uppercase;
 }
 
-.pc-pager a {
+.cs-pager a {
+  padding: 6px 0;
   color: var(--muted);
   transition: color 200ms ease;
 }
 
-.pc-pager a:hover {
+.cs-pager a:hover {
   color: var(--fg);
 }
 
-/* Case study: recording, short sections and real code excerpts. */
-.pc-figure video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+/* Room for the galaxy bar beside the text; on narrow screens there isn't any, so the pager stands in for it. */
+@media (min-width: 861px) {
+  .cs-scroll {
+    padding-inline: 140px;
+  }
 }
 
-.pc-figure:has(video)::after {
-  display: none;
+@media (max-width: 860px) {
+  .cs-bar {
+    display: none;
+  }
 }
 
-.pc-section {
-  display: grid;
-  justify-items: center;
-  gap: 16px;
-  width: 100%;
-  margin-top: clamp(28px, 5vw, 56px);
-}
+@media (prefers-reduced-motion: reduce) {
+  .ug > * {
+    animation: none;
+  }
 
-.pc-h2 {
-  font-family: var(--font-display), serif;
-  font-style: italic;
-  font-weight: 400;
-  font-size: clamp(1.9rem, 4.2vw, 3rem);
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.pc-body {
-  max-width: 60ch;
-  font-size: clamp(1rem, 1.3vw, 1.08rem);
-  line-height: 1.7;
-  color: rgba(236, 230, 218, 0.82);
-  text-wrap: pretty;
-}
-
-.show-code[data-variant="full"] {
-  width: 100%;
-  margin-top: 8px;
-  text-align: left;
-  background: rgba(8, 8, 14, 0.82);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-}
-
-.show-code[data-variant="full"] pre {
-  overflow-x: auto;
-  padding: 14px 0 16px;
-  font-size: clamp(11px, 1.1vw, 12.5px);
-  line-height: 1.7;
-  -webkit-mask-image: none;
-  mask-image: none;
-}
-
-.pc-repo {
-  justify-self: center;
-  margin-top: clamp(28px, 5vw, 48px);
+  .pcx-canvas,
+  .pcx-glow,
+  .pcx-arrow,
+  .cs-back,
+  .cs-close,
+  .cs-repo,
+  .cs-pager a {
+    transition: none;
+  }
 }
 
 /* Footer, after henry.codes: open space, then a stippled skyline rising into a solid footer with columns of
@@ -1110,40 +1265,6 @@ button {
 
 /* Small screens. */
 @media (max-width: 860px) {
-  .ps-index,
-  .pc-index {
-    display: none;
-  }
-
-  .ps-inner {
-    grid-template-columns: minmax(0, 1fr);
-    align-content: center;
-    gap: 24px;
-    padding: 64px var(--gutter) 24px;
-  }
-
-  .ps-media .show-half:last-child {
-    display: none;
-  }
-
-  .ps-media .show {
-    grid-template-columns: minmax(0, 1fr);
-    aspect-ratio: 16 / 10;
-  }
-
-  .ps-media .show-divider {
-    display: none;
-  }
-
-  .ps-media .show[data-video] .show-half:first-child {
-    display: none;
-  }
-
-  .ps-media .show[data-video] .show-half:last-child {
-    display: flex;
-  }
-
-
   .sf-cols {
     grid-template-columns: 1fr;
     padding-right: 0;
@@ -1158,60 +1279,19 @@ button {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ps-media,
-  .ps-open {
-    transition: none;
-  }
-}
-
-/* Split showcase: code | divider | product */
-.show {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
-  aspect-ratio: 7 / 5;
-  background: #0e0e10;
-  border: 1px solid var(--line);
-}
-
-.show-half {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-  padding: clamp(28px, 3.2vw, 40px) clamp(12px, 1.4vw, 18px) clamp(12px, 1.4vw, 18px);
-}
-
-.show-half:last-child {
-  background: #141417;
-}
-
-.show-label {
-  position: absolute;
-  top: 10px;
-  left: clamp(12px, 1.4vw, 18px);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.show-divider {
-  background: linear-gradient(to bottom, transparent, var(--line-strong) 12%, var(--line-strong) 88%, transparent);
-}
-
-/* Code half */
+/* Code excerpts in the case studies (Code.tsx). */
 .show-code {
-  flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  margin-top: 8px;
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: #0a0a0b;
-  overflow: hidden;
+  background: rgba(8, 8, 14, 0.82);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  text-align: left;
 }
 
 .show-tab {
@@ -1237,17 +1317,13 @@ button {
 }
 
 .show-code pre {
-  flex: 1;
   margin: 0;
-  padding: 10px 0;
-  overflow: hidden;
-  font-size: clamp(7.5px, 0.66vw, 10px);
-  line-height: 1.6;
+  padding: 14px 0 16px;
+  overflow-x: auto;
+  font-size: clamp(11px, 1.1vw, 12.5px);
+  line-height: 1.7;
   color: #d6d3cc;
   white-space: pre;
-  mask-image: linear-gradient(to bottom, #000 80%, transparent), linear-gradient(to right, #000 88%, transparent);
-  mask-composite: intersect;
-  -webkit-mask-composite: source-in;
 }
 
 .show-line {
@@ -1270,36 +1346,6 @@ button {
 .tk-com { color: rgba(236, 235, 232, 0.4); font-style: italic; }
 .tk-fn { color: #9cc4f5; }
 .tk-type { color: #f0a7c8; }
-
-/* Product half: holds the screen recording. */
-.show-app {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Narrow screens: stack the halves, divider turns horizontal. */
-@media (max-width: 600px) {
-  .show {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto 1px auto;
-    aspect-ratio: auto;
-  }
-
-  .show-half:first-child {
-    aspect-ratio: 1 / 1;
-  }
-
-  .show-divider {
-    background: linear-gradient(to right, transparent, var(--line-strong) 12%, var(--line-strong) 88%, transparent);
-  }
-
-  .show-code pre {
-    font-size: 9px;
-  }
-}
-
 
 .hero-visual {
   grid-column: 7 / 13;

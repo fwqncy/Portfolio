@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef } from "react";
-import { usePathname } from "next/navigation";
 import { gsap, horizontalLoop, Observer, prefersReducedMotion, useGSAP } from "../lib/gsap";
 
 // A whole TypeScript "Hello World!" project, one line per item, scrolling past like a ticker tape.
@@ -20,13 +19,8 @@ const LINES = [
   "> Hello World!",
 ];
 
-// Sits at the very top of the home page and scrolls away with it; case studies don't have one.
+// Sits at the very top of the home page and scrolls away with it.
 export default function CodeHeader() {
-  const pathname = usePathname();
-  return pathname === "/" ? <Ticker /> : null;
-}
-
-function Ticker() {
   const bar = useRef<HTMLElement>(null);
 
   useGSAP(

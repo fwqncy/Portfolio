@@ -3,7 +3,6 @@ import { GeistSans } from "geist/font/sans";
 import { IBM_Plex_Mono, Instrument_Serif } from "next/font/google";
 import Background from "./components/Background";
 import CodeHeader from "./components/CodeHeader";
-import PageTransition from "./components/PageTransition";
 import SiteFooter from "./components/SiteFooter";
 import "./globals.css";
 
@@ -28,11 +27,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${GeistSans.variable} ${display.variable} ${mono.variable}`}>
       <body>
         <Background />
-        <PageTransition>
-          <CodeHeader />
-          {children}
-          <SiteFooter />
-        </PageTransition>
+        <CodeHeader />
+        {children}
+        <SiteFooter />
       </body>
     </html>
   );

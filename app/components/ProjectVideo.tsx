@@ -24,7 +24,7 @@ export default function ProjectVideo({
       v.controls = true;
       return;
     }
-    const io = new IntersectionObserver(([e]) => (e.isIntersecting ? v.play().catch(() => {}) : v.pause()), {
+    const io = new IntersectionObserver((es) => (es[es.length - 1].isIntersecting ? v.play().catch(() => {}) : v.pause()), {
       threshold: 0.25,
     });
     io.observe(v);

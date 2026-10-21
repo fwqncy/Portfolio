@@ -1,6 +1,6 @@
 // Long-form case studies, keyed by project id. Code excerpts are copied from each project's repository.
 
-export type Snippet = { file: string; lang: "python" | "ts" | "go" | "rust" | "csharp" | "java"; src: string };
+export type Snippet = { file: string; lang: "python" | "ts" | "js" | "go" | "rust" | "csharp" | "java"; src: string };
 export type Section = { heading: string; body: string[]; code?: Snippet };
 
 export const caseStudies: Record<string, Section[]> = {
@@ -595,6 +595,125 @@ void reorderRaisesADraftThatBringsTheSupplierLinesBackToPar() {
       body: [
         "To make stock less boring to look at, every line is drawn as a fish made of stars. Lines at or above par circle the rim, and the further below par a line runs, the deeper and faster it's pulled toward the centre. Hover to read a fish, click to open it, or drag to spin the whole shoal.",
       ],
+    },
+  ],
+  terra: [
+    {
+      heading: "Where it started",
+      body: [
+        "I love Civilization and The Sims: planning a city, laying the roads, and watching everything come to life on top of them.",
+        "My dad’s Tesla drives itself with AI, and I wanted to learn the logic behind it. What does the car actually see, and how does it decide when to steer, brake or keep going? Terra puts the two together: a city builder where you build the roads and the cars teach themselves to drive them.",
+      ],
+    },
+    {
+      heading: "Build the roads",
+      body: [
+        "Roads are a graph you draw over real Brisbane streets from OpenStreetMap. A Web Worker turns that graph into rounded road envelopes, lane guides, buildings and trees in about 150 ms for the CBD, and Stop, Give Way, traffic light and crossing markings snap to the left-hand lanes.",
+      ],
+    },
+    {
+      heading: "What the car sees",
+      body: [
+        "Each car casts seven rays and reads how close the nearest kerb or car is along each one, from 0 (nothing in range) to 1 (touching). Those readings, plus its bearing to the route, its speed and its offset from the lane centre, go into a small neural network whose four outputs press the pedals and turn the wheel.",
+      ],
+      code: {
+        file: "web/src/engine/ai/car.js",
+        lang: "js",
+        src: `
+update(env) {
+  if (!this.done) {
+    this.#move();
+    this.polygon = this.#createPolygon();
+    this.damaged = this.#assessDamage(env);
+    this.age++;
+  }
+  if (this.sensor) {
+    this.sensor.update(this, {
+      grid: env.grid,
+      segments: env.segments,
+      polygons: env.traffic?.map((c) => c.polygon),
+    });
+    if (this.useBrain && !this.done) {
+      const inputs = this.sensor.values().concat(this.extras);
+      const out = NeuralNetwork.feedForward(inputs, this.brain);
+      this.controls.forward = out[0] === 1;
+      this.controls.left = out[1] === 1;
+      this.controls.right = out[2] === 1;
+      this.controls.reverse = out[3] === 1;
+    }
+  }
+}`,
+      },
+    },
+    {
+      heading: "Learning by survival",
+      body: [
+        "There’s no training data. A generation of cars sets off with random brains, and the one that gets furthest along the route without crashing is kept. The next generation is that brain mutated by anything from small tweaks to bold leaps, with some crossover from the runner-up. When a generation stalls on the same corner, the trainer widens the search and mixes in fresh random brains.",
+      ],
+      code: {
+        file: "web/src/engine/ai/trainer.js",
+        lang: "js",
+        src: `
+nextBrains() {
+  const n = this.populationSize;
+  if (!this.best) return new Array(n).fill(null);
+  const brains = [NeuralNetwork.clone(this.best)];
+  // Stuck on the same corner? Widen the search, and add some fresh random brains.
+  const boost = Math.min(4, 1 + this.stagnant * 0.35);
+  const fresh = Math.floor(n * (this.stagnant > 3 ? 0.15 : 0.05));
+  for (let i = 1; i < n; i++) {
+    if (i >= n - fresh) {
+      brains.push(null);
+      continue;
+    }
+    const spread = (0.25 + 1.5 * (i / n)) * boost;
+    let child;
+    if (this.runnerUp && NeuralNetwork.sameShape(this.best, this.runnerUp) && this.random() < 0.2) {
+      child = NeuralNetwork.crossover(this.best, this.runnerUp, this.random);
+    } else {
+      child = NeuralNetwork.clone(this.best);
+    }
+    NeuralNetwork.mutate(child, Math.min(1, this.mutation * spread), this.random);
+    brains.push(child);
+  }
+  return brains;
+}`,
+      },
+    },
+    {
+      heading: "Ships, planes and an ops floor",
+      body: [
+        "The same sensors and trainer teach ships to thread the North-West Channel out of Moreton Bay and planes to fly around a drifting cyclone. Every delivery pays coins into the Depot, an idle game that keeps earning while you’re away, and a 3D ops floor and a live dashboard run the whole network.",
+      ],
+    },
+    {
+      heading: "One simulation, two languages",
+      body: [
+        "The logistics sim runs in the browser and on the .NET API. The C# version is a line-for-line port of the JavaScript, with the same random number generator, call order and rounding, and parity tests replay fixtures from the real browser engine to prove both produce the same shipments and KPIs from the same seed.",
+      ],
+      code: {
+        file: "api/Terra.Api.Tests/ParityTests.cs",
+        lang: "csharp",
+        src: `
+[Fact]
+public void Simulator_ProducesTheSameShipmentsAsTheBrowser()
+{
+    var sim = Sim();
+    var l = Fixture["logistics"]!;
+    Assert.Equal(l["time"]!.GetValue<double>(), sim.Time);
+    Assert.Equal(l["shipmentCount"]!.GetValue<int>(), sim.Shipments.Count);
+    var expected = l["firstShipments"]!.AsArray();
+    for (var i = 0; i < expected.Count; i++)
+    {
+        var e = expected[i]!;
+        var s = sim.Shipments[i];
+        Assert.Equal(e["id"]!.GetValue<string>(), s.Id);
+        Assert.Equal(e["status"]!.GetValue<string>(), s.Status);
+        Close(e["costAud"]!.GetValue<double>(), s.CostAud, $"{s.Id} cost");
+        Close(e["etaAt"]!.GetValue<double>(), s.EtaAt, $"{s.Id} eta");
+    }
+}`,
+      },
     },
   ],
 };

@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
 import { gsap } from "../lib/gsap";
-import { useTransitionNav } from "./PageTransition";
+import { openCaseStudy } from "../lib/openCase";
 import { profile, projects } from "../content";
 
 // Laid out after henry.codes: a stippled skyline rising out of space into a solid footer, columns of small
@@ -128,16 +127,10 @@ function drawPlanet(c: HTMLCanvasElement) {
   ctx.globalAlpha = 1;
 }
 
-// Home page only; case studies end without a footer.
 export default function SiteFooter() {
-  return usePathname() === "/" ? <Footer /> : null;
-}
-
-function Footer() {
   const root = useRef<HTMLElement>(null);
   const sky = useRef<HTMLCanvasElement>(null);
   const planet = useRef<HTMLCanvasElement>(null);
-  const go = useTransitionNav();
 
   useEffect(() => {
     const draw = () => {
@@ -180,8 +173,9 @@ function Footer() {
                     href={`/projects/${p.id}`}
                     className="sf-link"
                     onClick={(e) => {
+                      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
                       e.preventDefault();
-                      go(`/projects/${p.id}`);
+                      openCaseStudy(p.id);
                     }}
                   >
                     {p.title}

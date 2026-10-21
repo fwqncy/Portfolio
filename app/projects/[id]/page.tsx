@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import ProjectCase from "../../components/ProjectCase";
+import Home from "../../components/Home";
 import { projects } from "../../content";
 
 export function generateStaticParams() {
@@ -15,9 +15,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return p ? { title: `${p.title} · Case study · Sayef Khan`, description: p.summary } : {};
 }
 
+// The home page with this project's card flipped open to its case study.
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const index = projects.findIndex((p) => p.id === id);
-  if (index === -1) notFound();
-  return <ProjectCase projects={projects} index={index} />;
+  if (!projects.some((p) => p.id === id)) notFound();
+  return <Home openId={id} />;
 }
