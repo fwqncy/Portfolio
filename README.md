@@ -48,7 +48,7 @@ Most of the text lives in one file, so you don't need to touch the layout to upd
 | Name, role, email, status line, GitHub / LinkedIn / CV links | `app/content.ts` (`profile`) |
 | Project titles, years, summaries, outcomes, tags and case-study images | `app/content.ts` (`projects`) |
 | Case-study write-ups and code excerpts | `app/caseStudies.ts` |
-| Project screen recordings | `public/projects/<id>/preview.mp4` and `poster.jpg` (Terra's is built from its README screenshots for now) |
+| Project screen recordings | `public/projects/<id>/preview.mp4` and `poster.jpg` |
 | Intro wording | `app/components/AboutCode.tsx` |
 | Projects heading | `app/components/Home.tsx` |
 | Header ticker lines | `app/components/CodeHeader.tsx` |

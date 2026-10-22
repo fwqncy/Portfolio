@@ -122,7 +122,6 @@ export const projects: Project[] = [
       "Cars learn a real Brisbane route from seven ray sensors and a genetic trainer, the CBD builds in about 150 ms in a Web Worker, and parity tests prove the browser engine and the C# API produce identical shipments from the same seed.",
     stack: ["JavaScript", "Angular", "Three.js", "C# .NET", "SQL Server", "Azure"],
     image: "/projects/terra/poster.jpg",
-    // Built from the screenshots in Terra's README; swap in a screen recording of the app when there is one.
     video: { src: "/projects/terra/preview.mp4", poster: "/projects/terra/poster.jpg" },
     repo: "https://github.com/fwqncy/Terra",
   },
